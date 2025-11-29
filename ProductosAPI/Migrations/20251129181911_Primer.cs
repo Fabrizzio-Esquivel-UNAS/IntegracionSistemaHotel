@@ -112,7 +112,6 @@ namespace ProductosAPI.Migrations
                 {
                     IdUsuario = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    NombreCompleto = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Correo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EstaActivo = table.Column<bool>(type: "bit", nullable: false),
@@ -277,11 +276,11 @@ namespace ProductosAPI.Migrations
 
             migrationBuilder.InsertData(
                 table: "Usuario",
-                columns: new[] { "IdUsuario", "Correo", "EstaActivo", "IdRol", "NombreCompleto", "PasswordHash" },
+                columns: new[] { "IdUsuario", "Correo", "EstaActivo", "IdRol", "PasswordHash" },
                 values: new object[,]
                 {
-                    { 1, "admin@example.com", true, 1, "Admin User", "$2a$11$qMa1JzKkm99KOmBdOv82qO15gSVbiKZlxIgYkqGQ67z0HW4GGncnq" },
-                    { 2, "recepcionista@example.com", true, 2, "Receptionist User", "$2a$11$azWOhJcRYYhNDBB2xCVFhe0Wuya3kemkgm02BHusCRv3vjFzhkRRW" }
+                    { 1, "admin@example.com", true, 1, "$2a$11$qMa1JzKkm99KOmBdOv82qO15gSVbiKZlxIgYkqGQ67z0HW4GGncnq" },
+                    { 2, "recepcionista@example.com", true, 2, "$2a$11$azWOhJcRYYhNDBB2xCVFhe0Wuya3kemkgm02BHusCRv3vjFzhkRRW" }
                 });
 
             migrationBuilder.CreateIndex(

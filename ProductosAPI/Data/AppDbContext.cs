@@ -1,20 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductosAPI.Models;
-using BCrypt.Net;
 
 namespace ProductosAPI.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        {
+        }
 
         public DbSet<Usuario> Usuario { get; set; }
         public DbSet<Rol> Rol { get; set; }
-        public DbSet<CategoriaHabitacion> CategoriaHabitacion { get; set; }
         public DbSet<Habitacion> Habitacion { get; set; }
+        public DbSet<CategoriaHabitacion> CategoriaHabitacion { get; set; }
+        public DbSet<Reserva> Reserva { get; set; }
         public DbSet<Huesped> Huesped { get; set; }
         public DbSet<EstadoReserva> EstadoReserva { get; set; }
-        public DbSet<Reserva> Reserva { get; set; }
         public DbSet<Servicio> Servicio { get; set; }
         public DbSet<ConsumoServicio> ConsumoServicio { get; set; }
         public DbSet<Factura> Factura { get; set; }
@@ -23,18 +24,17 @@ namespace ProductosAPI.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Seed Roles
+            // Seed Rol
             modelBuilder.Entity<Rol>().HasData(
                 new Rol { IdRol = 1, Nombre = "Administrador" },
                 new Rol { IdRol = 2, Nombre = "Recepcionista" }
             );
 
-            // Seed Usuarios
+            // Seed Usuario
             modelBuilder.Entity<Usuario>().HasData(
                 new Usuario
                 {
                     IdUsuario = 1,
-                    NombreCompleto = "Admin User",
                     Correo = "admin@example.com",
                     PasswordHash = "$2a$11$qMa1JzKkm99KOmBdOv82qO15gSVbiKZlxIgYkqGQ67z0HW4GGncnq", // Contraseña: admin123
                     EstaActivo = true,
@@ -43,7 +43,6 @@ namespace ProductosAPI.Data
                 new Usuario
                 {
                     IdUsuario = 2,
-                    NombreCompleto = "Receptionist User",
                     Correo = "recepcionista@example.com",
                     PasswordHash = "$2a$11$azWOhJcRYYhNDBB2xCVFhe0Wuya3kemkgm02BHusCRv3vjFzhkRRW", // Contraseña: recep123
                     EstaActivo = true,

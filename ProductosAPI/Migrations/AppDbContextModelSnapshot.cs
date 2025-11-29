@@ -402,11 +402,6 @@ namespace ProductosAPI.Migrations
                     b.Property<int>("IdRol")
                         .HasColumnType("int");
 
-                    b.Property<string>("NombreCompleto")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -424,7 +419,6 @@ namespace ProductosAPI.Migrations
                             Correo = "admin@example.com",
                             EstaActivo = true,
                             IdRol = 1,
-                            NombreCompleto = "Admin User",
                             PasswordHash = "$2a$11$qMa1JzKkm99KOmBdOv82qO15gSVbiKZlxIgYkqGQ67z0HW4GGncnq"
                         },
                         new
@@ -433,7 +427,6 @@ namespace ProductosAPI.Migrations
                             Correo = "recepcionista@example.com",
                             EstaActivo = true,
                             IdRol = 2,
-                            NombreCompleto = "Receptionist User",
                             PasswordHash = "$2a$11$azWOhJcRYYhNDBB2xCVFhe0Wuya3kemkgm02BHusCRv3vjFzhkRRW"
                         });
                 });

@@ -17,10 +17,6 @@ namespace ProductosAPI.Models
 
         [Required]
         [MaxLength(100)]
-        public string NombreCompleto { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(100)]
         public string Correo { get; set; } = string.Empty;
 
         // Mantener PasswordHash con el mismo nombre pedido

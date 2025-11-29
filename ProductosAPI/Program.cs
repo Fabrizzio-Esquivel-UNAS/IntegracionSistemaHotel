@@ -44,7 +44,7 @@ namespace ProductosAPI
                         //define quién será la audiencia
                         ValidAudience = builder.Configuration["Jwt:Audience"],
                         //Se proporciona la clave secreta que se va a usar para validar la firma
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("La clave JWT 'Jwt:Key' no se encontró en la configuración.")))
                     };
                 });
 
