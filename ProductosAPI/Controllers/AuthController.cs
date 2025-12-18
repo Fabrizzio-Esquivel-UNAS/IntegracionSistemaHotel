@@ -41,59 +41,73 @@ namespace ProductosAPI.Controllers
         [HttpPost("registro")]
         public async Task<ActionResult<Usuario>> Registro([FromBody] RegistroDto dto)
         {
-            if (await _context.Usuario.AnyAsync(u => u.Correo == dto.Username))
+            try
             {
-                return BadRequest("El nombre de usuario ya existe");
-            }
+                if (await _context.Usuario.AnyAsync(u => u.Correo == dto.Username))
+                {
+                    return BadRequest(new { message = "El nombre de usuario ya existe" });
+                }
 
-            // Hashear la contraseña
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+                // Hashear la clave
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            //validamos rol por nombre
-            var rolesValidos = new[] { "Administrador", "Recepcionista" };
-            string rolNombre = dto.Rol; 
+                //validamos rol por nombre
+                var rolesValidos = new[] { "Administrador", "Recepcionista" };
+                string rolNombre = dto.Rol; 
 
-            if (string.IsNullOrWhiteSpace(rolNombre) || !rolesValidos.Contains(rolNombre))
-            {
-                rolNombre = "Recepcionista"; // por defecto
-            }
+                if (string.IsNullOrWhiteSpace(rolNombre) || !rolesValidos.Contains(rolNombre))
+                {
+                    rolNombre = "Recepcionista"; // por defecto
+                }
 
-            // Buscar rol existente o crearlo
-            var role = await _context.Rol.FirstOrDefaultAsync(r => r.Nombre == rolNombre);
-            if (role == null)
-            {
-                role = new Rol { Nombre = rolNombre };
-                _context.Rol.Add(role);
+                // Buscar rol existente o crearlo
+                var role = await _context.Rol.FirstOrDefaultAsync(r => r.Nombre == rolNombre);
+                if (role == null)
+                {
+                    role = new Rol { Nombre = rolNombre };
+                    _context.Rol.Add(role);
+                    await _context.SaveChangesAsync();
+                }
+
+                var user = new Usuario
+                {
+                    Correo = dto.Username,
+                    PasswordHash = passwordHash,
+                    IdRol = role.IdRol
+                };
+                _context.Usuario.Add(user);
                 await _context.SaveChangesAsync();
+                return Ok(new { Message = "Usuario registrado exitosamente" });
             }
-
-            var user = new Usuario
+            catch (Exception ex)
             {
-                Correo = dto.Username,
-                PasswordHash = passwordHash,
-                IdRol = role.IdRol
-            };
-            _context.Usuario.Add(user);
-            await _context.SaveChangesAsync();
-            return Ok(new { Message = "Usuario registrado exitosamente" });
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<string>> Login([FromBody] LoginDto dto)
         {
-            var user = await _context.Usuario
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.Correo == dto.Username);
-
-            //verificar usuario y contraseña
-            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+            try
             {
-                return Unauthorized("Credenciales inválidas");
-            }
+                var user = await _context.Usuario
+                    .Include(u => u.Rol)
+                    .FirstOrDefaultAsync(u => u.Correo == dto.Username);
 
-            //Generar el token JWT
-            string token = GenerateJwtToken(user);
-            return Ok(new { token = token });
+                //verificar usuario y clave
+                if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+                {
+                    return Unauthorized(new { message = "Credenciales inválidas" });
+                }
+
+                //Generar el token JWT
+                string token = GenerateJwtToken(user);
+                return Ok(new { token = token });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         private string GenerateJwtToken(Usuario user)
@@ -138,7 +152,7 @@ namespace ProductosAPI.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                //Duración del token
+                //Duracion del token
                 Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"],

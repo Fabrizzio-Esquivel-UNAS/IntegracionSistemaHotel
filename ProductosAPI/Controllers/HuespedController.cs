@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductosAPI.Data;
@@ -24,31 +24,41 @@ namespace ProductosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Huesped>>> GetHuespedes()
         {
-            return await _context.Huesped.ToListAsync();
+            try
+            {
+                return await _context.Huesped.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // GET: api/Huesped/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Huesped>> GetHuesped(int id)
         {
-            var huesped = await _context.Huesped.FindAsync(id);
-
-            if (huesped == null)
+            try
             {
-                return NotFound();
-            }
+                var huesped = await _context.Huesped.FindAsync(id);
 
-            return huesped;
+                if (huesped == null)
+                {
+                    return NotFound(new { message = "Huésped no encontrado" });
+                }
+
+                return huesped;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // PUT: api/Huesped/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutHuesped(int id, Huesped huesped)
         {
-            if (id != huesped.IdHuesped)
-            {
-                return BadRequest();
-            }
 
             _context.Entry(huesped).State = EntityState.Modified;
 
@@ -60,12 +70,16 @@ namespace ProductosAPI.Controllers
             {
                 if (!HuespedExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { message = "Huésped no encontrado" });
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, new { message = "Error de concurrencia al actualizar el huésped" });
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
 
             return NoContent();
@@ -75,10 +89,17 @@ namespace ProductosAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Huesped>> PostHuesped(Huesped huesped)
         {
-            _context.Huesped.Add(huesped);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Huesped.Add(huesped);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetHuesped", new { id = huesped.IdHuesped }, huesped);
+                return CreatedAtAction("GetHuesped", new { id = huesped.IdHuesped }, huesped);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // DELETE: api/Huesped/5
@@ -86,16 +107,23 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteHuesped(int id)
         {
-            var huesped = await _context.Huesped.FindAsync(id);
-            if (huesped == null)
+            try
             {
-                return NotFound();
+                var huesped = await _context.Huesped.FindAsync(id);
+                if (huesped == null)
+                {
+                    return NotFound(new { message = "Huésped no encontrado" });
+                }
+
+                _context.Huesped.Remove(huesped);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.Huesped.Remove(huesped);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         private bool HuespedExists(int id)

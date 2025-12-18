@@ -15,23 +15,26 @@ namespace ProductosAPI.Models
             set => IdUsuario = value;
         }
 
-        [Required]
-        [MaxLength(100)]
+        [Required(ErrorMessage = "El correo es obligatorio.")]
+        [EmailAddress(ErrorMessage = "El formato del correo no es válido.")]
+        [StringLength(100, ErrorMessage = "El correo no puede exceder los 100 caracteres.")]
         public string Correo { get; set; } = string.Empty;
 
         // Mantener PasswordHash con el mismo nombre pedido
-        [Required]
+        [Required(ErrorMessage = "La contraseña es obligatoria.")]
         public string PasswordHash { get; set; } = string.Empty;
 
         public bool EstaActivo { get; set; } = true;
 
-        // Clave foránea al rol
+        // Clave foranea al rol
+        [Required(ErrorMessage = "El rol es obligatorio.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un rol válido.")]
         public int IdRol { get; set; }
 
         [ForeignKey("IdRol")]
         public virtual Rol? Rol { get; set; }
 
-        // Compatibilidad con código existente que usaba Username
+        // Compatibilidad con codigo existente que usaba Username
         [NotMapped]
         public string Username
         {

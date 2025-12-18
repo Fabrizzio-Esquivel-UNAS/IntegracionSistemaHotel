@@ -24,21 +24,35 @@ namespace ProductosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Rol>>> GetRoles()
         {
-            return await _context.Rol.ToListAsync();
+            try
+            {
+                return await _context.Rol.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // GET: api/Rol/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Rol>> GetRol(int id)
         {
-            var rol = await _context.Rol.FindAsync(id);
-
-            if (rol == null)
+            try
             {
-                return NotFound();
-            }
+                var rol = await _context.Rol.FindAsync(id);
 
-            return rol;
+                if (rol == null)
+                {
+                    return NotFound(new { message = "Rol no encontrado" });
+                }
+
+                return rol;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

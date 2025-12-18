@@ -9,10 +9,14 @@ namespace ProductosAPI.Models
         [Key]
         public int IdFactura { get; set; }
 
-        public decimal MontoTotal { get; set; } // Suma de habitación + consumos
+        [Required(ErrorMessage = "El monto total es obligatorio.")]
+        [Range(0.00, double.MaxValue, ErrorMessage = "El monto total debe ser mayor o igual a 0.")]
+        public decimal MontoTotal { get; set; } // Suma de habitacion + consumos
         public DateTime FechaEmision { get; set; } = DateTime.Now;
 
-        // Relación 1 a 1 con Reserva usualmente
+        // Relacion 1 a 1 con Reserva usualmente
+        [Required(ErrorMessage = "La reserva es obligatoria.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una reserva v?lida.")]
         public int IdReserva { get; set; }
         [ForeignKey("IdReserva")]
         public virtual Reserva? Reserva { get; set; }

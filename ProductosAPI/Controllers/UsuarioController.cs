@@ -24,63 +24,77 @@ namespace ProductosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
         {
-            return await _context.Usuario.Include(u => u.Rol).ToListAsync();
+            try
+            {
+                return await _context.Usuario.Include(u => u.Rol).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // GET: api/Usuario/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Usuario>> GetUsuario(int id)
         {
-            var usuario = await _context.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.IdUsuario == id);
-
-            if (usuario == null)
+            try
             {
-                return NotFound();
-            }
+                var usuario = await _context.Usuario.Include(u => u.Rol).FirstOrDefaultAsync(u => u.IdUsuario == id);
 
-            return usuario;
+                if (usuario == null)
+                {
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                return usuario;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // PUT: api/Usuario/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUsuario(int id, Usuario usuario)
         {
-            if (id != usuario.IdUsuario)
-            {
-                return BadRequest();
-            }
-
-            // Si la contraseña no se proporciona, no la actualices
-            if (string.IsNullOrEmpty(usuario.PasswordHash))
-            {
-                var existingUser = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(u => u.IdUsuario == id);
-                if (existingUser != null)
-                {
-                    usuario.PasswordHash = existingUser.PasswordHash;
-                }
-            }
-            else
-            {
-                // Hashear la nueva contraseña si se proporcionó
-                usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(usuario.PasswordHash);
-            }
-
-            _context.Entry(usuario).State = EntityState.Modified;
 
             try
             {
+                // Si la clave no se proporciona, no la actualices
+                if (string.IsNullOrEmpty(usuario.PasswordHash))
+                {
+                    var existingUser = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(u => u.IdUsuario == id);
+                    if (existingUser != null)
+                    {
+                        usuario.PasswordHash = existingUser.PasswordHash;
+                    }
+                }
+                else
+                {
+                    // Hashear la nueva clave si se proporciono
+                    usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(usuario.PasswordHash);
+                }
+
+                _context.Entry(usuario).State = EntityState.Modified;
+
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!UsuarioExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { message = "Usuario no encontrado" });
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, new { message = "Error de concurrencia al actualizar el usuario" });
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
 
             return NoContent();
@@ -90,29 +104,43 @@ namespace ProductosAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
         {
-            // Hashear la contraseña antes de guardarla
-            usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(usuario.PasswordHash);
+            try
+            {
+                // Hashear la clave antes de guardarla
+                usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(usuario.PasswordHash);
 
-            _context.Usuario.Add(usuario);
-            await _context.SaveChangesAsync();
+                _context.Usuario.Add(usuario);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUsuario", new { id = usuario.IdUsuario }, usuario);
+                return CreatedAtAction("GetUsuario", new { id = usuario.IdUsuario }, usuario);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // DELETE: api/Usuario/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
-            var usuario = await _context.Usuario.FindAsync(id);
-            if (usuario == null)
+            try
             {
-                return NotFound();
+                var usuario = await _context.Usuario.FindAsync(id);
+                if (usuario == null)
+                {
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                _context.Usuario.Remove(usuario);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.Usuario.Remove(usuario);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         private bool UsuarioExists(int id)

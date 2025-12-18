@@ -24,21 +24,35 @@ namespace ProductosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Servicio>>> GetServicios()
         {
-            return await _context.Servicio.ToListAsync();
+            try
+            {
+                return await _context.Servicio.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // GET: api/Servicio/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Servicio>> GetServicio(int id)
         {
-            var servicio = await _context.Servicio.FindAsync(id);
-
-            if (servicio == null)
+            try
             {
-                return NotFound();
-            }
+                var servicio = await _context.Servicio.FindAsync(id);
 
-            return servicio;
+                if (servicio == null)
+                {
+                    return NotFound(new { message = "Servicio no encontrado" });
+                }
+
+                return servicio;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // PUT: api/Servicio/5
@@ -46,10 +60,6 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> PutServicio(int id, Servicio servicio)
         {
-            if (id != servicio.IdServicio)
-            {
-                return BadRequest();
-            }
 
             _context.Entry(servicio).State = EntityState.Modified;
 
@@ -61,12 +71,16 @@ namespace ProductosAPI.Controllers
             {
                 if (!ServicioExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { message = "Servicio no encontrado" });
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, new { message = "Error de concurrencia al actualizar el servicio" });
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
 
             return NoContent();
@@ -77,10 +91,17 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<Servicio>> PostServicio(Servicio servicio)
         {
-            _context.Servicio.Add(servicio);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Servicio.Add(servicio);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetServicio", new { id = servicio.IdServicio }, servicio);
+                return CreatedAtAction("GetServicio", new { id = servicio.IdServicio }, servicio);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // DELETE: api/Servicio/5
@@ -88,16 +109,23 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteServicio(int id)
         {
-            var servicio = await _context.Servicio.FindAsync(id);
-            if (servicio == null)
+            try
             {
-                return NotFound();
+                var servicio = await _context.Servicio.FindAsync(id);
+                if (servicio == null)
+                {
+                    return NotFound(new { message = "Servicio no encontrado" });
+                }
+
+                _context.Servicio.Remove(servicio);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.Servicio.Remove(servicio);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         private bool ServicioExists(int id)

@@ -24,41 +24,51 @@ namespace ProductosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Reserva>>> GetReservas()
         {
-            return await _context.Reserva
-                .Include(r => r.Huesped)
-                .Include(r => r.Habitacion)
-                .Include(r => r.Usuario)
-                .Include(r => r.EstadoReserva)
-                .ToListAsync();
+            try
+            {
+                return await _context.Reserva
+                    .Include(r => r.Huesped)
+                    .Include(r => r.Habitacion)
+                    .Include(r => r.Usuario)
+                    .Include(r => r.EstadoReserva)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // GET: api/Reserva/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Reserva>> GetReserva(int id)
         {
-            var reserva = await _context.Reserva
-                .Include(r => r.Huesped)
-                .Include(r => r.Habitacion)
-                .Include(r => r.Usuario)
-                .Include(r => r.EstadoReserva)
-                .FirstOrDefaultAsync(r => r.IdReserva == id);
-
-            if (reserva == null)
+            try
             {
-                return NotFound();
-            }
+                var reserva = await _context.Reserva
+                    .Include(r => r.Huesped)
+                    .Include(r => r.Habitacion)
+                    .Include(r => r.Usuario)
+                    .Include(r => r.EstadoReserva)
+                    .FirstOrDefaultAsync(r => r.IdReserva == id);
 
-            return reserva;
+                if (reserva == null)
+                {
+                    return NotFound(new { message = "Reserva no encontrada" });
+                }
+
+                return reserva;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // PUT: api/Reserva/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutReserva(int id, Reserva reserva)
         {
-            if (id != reserva.IdReserva)
-            {
-                return BadRequest();
-            }
 
             _context.Entry(reserva).State = EntityState.Modified;
 
@@ -70,12 +80,16 @@ namespace ProductosAPI.Controllers
             {
                 if (!ReservaExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { message = "Reserva no encontrada" });
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, new { message = "Error de concurrencia al actualizar la reserva" });
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
 
             return NoContent();
@@ -85,10 +99,17 @@ namespace ProductosAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Reserva>> PostReserva(Reserva reserva)
         {
-            _context.Reserva.Add(reserva);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Reserva.Add(reserva);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetReserva", new { id = reserva.IdReserva }, reserva);
+                return CreatedAtAction("GetReserva", new { id = reserva.IdReserva }, reserva);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // DELETE: api/Reserva/5
@@ -96,16 +117,23 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteReserva(int id)
         {
-            var reserva = await _context.Reserva.FindAsync(id);
-            if (reserva == null)
+            try
             {
-                return NotFound();
+                var reserva = await _context.Reserva.FindAsync(id);
+                if (reserva == null)
+                {
+                    return NotFound(new { message = "Reserva no encontrada" });
+                }
+
+                _context.Reserva.Remove(reserva);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.Reserva.Remove(reserva);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         private bool ReservaExists(int id)

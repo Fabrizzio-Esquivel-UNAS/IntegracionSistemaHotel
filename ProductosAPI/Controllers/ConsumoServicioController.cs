@@ -24,31 +24,41 @@ namespace ProductosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ConsumoServicio>>> GetConsumoServicios()
         {
-            return await _context.ConsumoServicio.Include(c => c.Reserva).Include(c => c.Servicio).ToListAsync();
+            try
+            {
+                return await _context.ConsumoServicio.Include(c => c.Reserva).Include(c => c.Servicio).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // GET: api/ConsumoServicio/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ConsumoServicio>> GetConsumoServicio(int id)
         {
-            var consumoServicio = await _context.ConsumoServicio.Include(c => c.Reserva).Include(c => c.Servicio).FirstOrDefaultAsync(c => c.IdConsumo == id);
-
-            if (consumoServicio == null)
+            try
             {
-                return NotFound();
-            }
+                var consumoServicio = await _context.ConsumoServicio.Include(c => c.Reserva).Include(c => c.Servicio).FirstOrDefaultAsync(c => c.IdConsumo == id);
 
-            return consumoServicio;
+                if (consumoServicio == null)
+                {
+                    return NotFound(new { message = "Consumo de servicio no encontrado" });
+                }
+
+                return consumoServicio;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // PUT: api/ConsumoServicio/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutConsumoServicio(int id, ConsumoServicio consumoServicio)
         {
-            if (id != consumoServicio.IdConsumo)
-            {
-                return BadRequest();
-            }
 
             _context.Entry(consumoServicio).State = EntityState.Modified;
 
@@ -60,12 +70,16 @@ namespace ProductosAPI.Controllers
             {
                 if (!ConsumoServicioExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { message = "Consumo de servicio no encontrado" });
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, new { message = "Error de concurrencia al actualizar el consumo de servicio" });
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
 
             return NoContent();
@@ -75,26 +89,40 @@ namespace ProductosAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<ConsumoServicio>> PostConsumoServicio(ConsumoServicio consumoServicio)
         {
-            _context.ConsumoServicio.Add(consumoServicio);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.ConsumoServicio.Add(consumoServicio);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetConsumoServicio", new { id = consumoServicio.IdConsumo }, consumoServicio);
+                return CreatedAtAction("GetConsumoServicio", new { id = consumoServicio.IdConsumo }, consumoServicio);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // DELETE: api/ConsumoServicio/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteConsumoServicio(int id)
         {
-            var consumoServicio = await _context.ConsumoServicio.FindAsync(id);
-            if (consumoServicio == null)
+            try
             {
-                return NotFound();
+                var consumoServicio = await _context.ConsumoServicio.FindAsync(id);
+                if (consumoServicio == null)
+                {
+                    return NotFound(new { message = "Consumo de servicio no encontrado" });
+                }
+
+                _context.ConsumoServicio.Remove(consumoServicio);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.ConsumoServicio.Remove(consumoServicio);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         private bool ConsumoServicioExists(int id)

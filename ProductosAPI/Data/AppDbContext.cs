@@ -36,7 +36,7 @@ namespace ProductosAPI.Data
                 {
                     IdUsuario = 1,
                     Correo = "admin@example.com",
-                    PasswordHash = "$2a$11$qMa1JzKkm99KOmBdOv82qO15gSVbiKZlxIgYkqGQ67z0HW4GGncnq", // Contraseña: admin123
+                    PasswordHash = "$2a$11$qMa1JzKkm99KOmBdOv82qO15gSVbiKZlxIgYkqGQ67z0HW4GGncnq", // Password: admin123
                     EstaActivo = true,
                     IdRol = 1
                 },
@@ -44,7 +44,7 @@ namespace ProductosAPI.Data
                 {
                     IdUsuario = 2,
                     Correo = "recepcionista@example.com",
-                    PasswordHash = "$2a$11$azWOhJcRYYhNDBB2xCVFhe0Wuya3kemkgm02BHusCRv3vjFzhkRRW", // Contraseña: recep123
+                    PasswordHash = "$2a$11$azWOhJcRYYhNDBB2xCVFhe0Wuya3kemkgm02BHusCRv3vjFzhkRRW", // Password: recep123
                     EstaActivo = true,
                     IdRol = 2
                 }

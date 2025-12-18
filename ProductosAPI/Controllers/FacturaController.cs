@@ -24,21 +24,35 @@ namespace ProductosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Factura>>> GetFacturas()
         {
-            return await _context.Factura.Include(f => f.Reserva).ToListAsync();
+            try
+            {
+                return await _context.Factura.Include(f => f.Reserva).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // GET: api/Factura/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Factura>> GetFactura(int id)
         {
-            var factura = await _context.Factura.Include(f => f.Reserva).FirstOrDefaultAsync(f => f.IdFactura == id);
-
-            if (factura == null)
+            try
             {
-                return NotFound();
-            }
+                var factura = await _context.Factura.Include(f => f.Reserva).FirstOrDefaultAsync(f => f.IdFactura == id);
 
-            return factura;
+                if (factura == null)
+                {
+                    return NotFound(new { message = "Factura no encontrada" });
+                }
+
+                return factura;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // PUT: api/Factura/5
@@ -46,10 +60,6 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> PutFactura(int id, Factura factura)
         {
-            if (id != factura.IdFactura)
-            {
-                return BadRequest();
-            }
 
             _context.Entry(factura).State = EntityState.Modified;
 
@@ -61,12 +71,16 @@ namespace ProductosAPI.Controllers
             {
                 if (!FacturaExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { message = "Factura no encontrada" });
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, new { message = "Error de concurrencia al actualizar la factura" });
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
 
             return NoContent();
@@ -77,10 +91,17 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador,Recepcionista")]
         public async Task<ActionResult<Factura>> PostFactura(Factura factura)
         {
-            _context.Factura.Add(factura);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Factura.Add(factura);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetFactura", new { id = factura.IdFactura }, factura);
+                return CreatedAtAction("GetFactura", new { id = factura.IdFactura }, factura);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // DELETE: api/Factura/5
@@ -88,16 +109,23 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteFactura(int id)
         {
-            var factura = await _context.Factura.FindAsync(id);
-            if (factura == null)
+            try
             {
-                return NotFound();
+                var factura = await _context.Factura.FindAsync(id);
+                if (factura == null)
+                {
+                    return NotFound(new { message = "Factura no encontrada" });
+                }
+
+                _context.Factura.Remove(factura);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.Factura.Remove(factura);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         private bool FacturaExists(int id)

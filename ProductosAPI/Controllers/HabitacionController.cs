@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductosAPI.Data;
@@ -24,21 +24,35 @@ namespace ProductosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Habitacion>>> GetHabitaciones()
         {
-            return await _context.Habitacion.Include(h => h.CategoriaHabitacion).ToListAsync();
+            try
+            {
+                return await _context.Habitacion.Include(h => h.CategoriaHabitacion).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // GET: api/Habitacion/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Habitacion>> GetHabitacion(int id)
         {
-            var habitacion = await _context.Habitacion.Include(h => h.CategoriaHabitacion).FirstOrDefaultAsync(h => h.IdHabitacion == id);
-
-            if (habitacion == null)
+            try
             {
-                return NotFound();
-            }
+                var habitacion = await _context.Habitacion.Include(h => h.CategoriaHabitacion).FirstOrDefaultAsync(h => h.IdHabitacion == id);
 
-            return habitacion;
+                if (habitacion == null)
+                {
+                    return NotFound(new { message = "Habitación no encontrada" });
+                }
+
+                return habitacion;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // PUT: api/Habitacion/5
@@ -46,10 +60,6 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador,Recepcionista")]
         public async Task<IActionResult> PutHabitacion(int id, Habitacion habitacion)
         {
-            if (id != habitacion.IdHabitacion)
-            {
-                return BadRequest();
-            }
 
             _context.Entry(habitacion).State = EntityState.Modified;
 
@@ -61,12 +71,16 @@ namespace ProductosAPI.Controllers
             {
                 if (!HabitacionExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { message = "Habitación no encontrada" });
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, new { message = "Error de concurrencia al actualizar la habitación" });
                 }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
 
             return NoContent();
@@ -77,10 +91,17 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<Habitacion>> PostHabitacion(Habitacion habitacion)
         {
-            _context.Habitacion.Add(habitacion);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Habitacion.Add(habitacion);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetHabitacion", new { id = habitacion.IdHabitacion }, habitacion);
+                return CreatedAtAction("GetHabitacion", new { id = habitacion.IdHabitacion }, habitacion);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // DELETE: api/Habitacion/5
@@ -88,16 +109,23 @@ namespace ProductosAPI.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteHabitacion(int id)
         {
-            var habitacion = await _context.Habitacion.FindAsync(id);
-            if (habitacion == null)
+            try
             {
-                return NotFound();
+                var habitacion = await _context.Habitacion.FindAsync(id);
+                if (habitacion == null)
+                {
+                    return NotFound(new { message = "Habitación no encontrada" });
+                }
+
+                _context.Habitacion.Remove(habitacion);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.Habitacion.Remove(habitacion);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         private bool HabitacionExists(int id)
