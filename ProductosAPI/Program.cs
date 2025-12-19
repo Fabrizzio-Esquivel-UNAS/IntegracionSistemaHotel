@@ -44,7 +44,7 @@ namespace ProductosAPI
                         //define quien sera la audiencia
                         ValidAudience = builder.Configuration["Jwt:Audience"],
                         //Se proporciona la clave secreta que se va a usar para validar la firma
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("La clave JWT 'Jwt:Key' no se encontr・en la configuraci.")))
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("La clave JWT 'Jwt:Key' no se encontrﾂ・en la configuraciﾃｳn.")))
                     };
                 });
 
@@ -61,7 +61,7 @@ namespace ProductosAPI
                     Title = "Productos API",
                     Version = "v1",
                     Description = "API REST para Sistema de Hoteleria" +
-                    "con autenticacion JWT"
+                    " con autenticacion JWT"
                 });
 
                 //Definir el esquema de seguridad del Bearer
@@ -72,7 +72,7 @@ namespace ProductosAPI
                     Scheme = "bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "Ingresa tu token JWT aqui・ Formato: Bearer {token}"
+                    Description = "Ingresa tu token JWT aquiﾂ・ Formato: Bearer {token}"
                 });
 
                 //Exigir ese esquema de autorizacion por defecto en las operaciones
